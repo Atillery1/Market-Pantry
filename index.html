@@ -1,400 +1,787 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Hilton: The Main - Market Pantry Calculator</title>
-<style>
-/* General Styling */
-body {
-font-family: "Arial", sans-serif;
-margin: 0;
-padding: 0;
-background: #000; /* Black background */
-color: #fff;
-}
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Hilton: The Main - Market Pantry Calculator</title>
+  <style>
+    /************************************************************
+     * HILTON COLORS, VARIABLES, & BASE STYLES                 *
+     ************************************************************/
+    :root {
+      --navy: #003580;
+      --gold: #f8c146;
+      --gold-hover: #e6b03b;
+      --light-bg: #f8f8f8;
+      --text-color: #333;
 
-h1 {
-text-align: center;
-margin: 20px 0;
-color: #f4c10f; /* Gold */
-font-size: 2.5em;
-text-shadow: 2px 2px 5px #333;
-}
+      --box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+      --transition: 0.3s ease;
 
-.header {
-background: #333;
-color: #f4c10f;
-padding: 10px;
-position: sticky;
-top: 0;
-z-index: 1000;
-display: flex;
-justify-content: space-between;
-align-items: center;
-border-bottom: 2px solid #f4c10f;
-}
+      /* Additional accent color for a fun twist */
+      --accent: #FF69B4; /* Hot pink - can be changed if desired */
+    }
 
-.header .total-display {
-font-size: 1.2em;
-text-shadow: 1px 1px 3px #000;
-}
+    * {
+      margin: 0; 
+      padding: 0; 
+      box-sizing: border-box;
+    }
+    body {
+      font-family: "Arial", sans-serif;
+      background: linear-gradient(135deg, var(--navy) 0%, var(--gold) 100%);
+      min-height: 100vh;
+      color: var(--text-color);
+      display: flex;
+      flex-direction: column;
+    }
 
-.header button {
-background: #f4c10f;
-color: #000;
-border: none;
-padding: 10px 15px;
-font-size: 1em;
-border-radius: 5px;
-cursor: pointer;
-box-shadow: 2px 2px 5px #222;
-}
+    /************************************************************
+     * HEADER                                                  *
+     ************************************************************/
+    .header {
+      background-color: var(--navy);
+      color: var(--gold);
+      padding: 10px 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 3px solid var(--gold);
+      box-shadow: var(--box-shadow);
+    }
+    .header h1 {
+      font-size: 1.4rem;
+      font-weight: bold;
+      letter-spacing: 1px;
+      margin-right: 10px;
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+    }
 
-.container {
-max-width: 1200px;
-margin: 0 auto;
-padding: 20px;
-}
+    /************************************************************
+     * MAIN WRAPPER                                            *
+     ************************************************************/
+    .main-content {
+      flex: 1;
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 10px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      position: relative;
+    }
 
-.instructions {
-background: #333;
-padding: 15px;
-border-radius: 10px;
-text-align: center;
-color: #f4c10f;
-font-weight: bold;
-margin-bottom: 20px;
-}
+    /************************************************************
+     * TAB NAVIGATION                                          *
+     ************************************************************/
+    .tabs {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 5px;
+      margin-bottom: 10px;
+      flex-wrap: wrap;
+    }
+    .tab-btn {
+      background-color: var(--light-bg);
+      border: 2px solid var(--gold);
+      color: var(--navy);
+      padding: 5px 15px;
+      border-radius: 20px;
+      cursor: pointer;
+      font-size: 0.9rem;
+      transition: var(--transition);
+    }
+    .tab-btn:hover,
+    .tab-btn.active {
+      background-color: var(--gold);
+      color: var(--navy);
+      transform: scale(1.05);
+    }
 
-.search-bar {
-margin: 20px auto;
-text-align: center;
-}
+    /************************************************************
+     * SEARCH BAR                                              *
+     ************************************************************/
+    .search-container {
+      text-align: center;
+      margin-bottom: 8px;
+    }
+    .search-container input {
+      width: 80%;
+      max-width: 400px;
+      padding: 8px 10px;
+      border: 2px solid var(--navy);
+      border-radius: 5px;
+      font-size: 0.9rem;
+    }
+    .search-container input:focus {
+      outline: none;
+      box-shadow: 0 0 5px rgba(0, 53, 128, 0.3);
+    }
 
-.search-bar input {
-width: 80%;
-padding: 10px;
-font-size: 1em;
-border: 2px solid #f4c10f;
-border-radius: 5px;
-background: #222;
-color: #fff;
-}
+    /************************************************************
+     * CATEGORY CONTENT (ITEMS)                                *
+     ************************************************************/
+    .tab-content {
+      display: none; /* hidden by default; shown when active */
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+    .tab-content.active {
+      display: flex;
+    }
 
-.category {
-margin-top: 20px;
-background: #222;
-padding: 15px;
-border-radius: 10px;
-}
+    .item-card {
+      background-color: #fff;
+      border-radius: 5px;
+      box-shadow: var(--box-shadow);
+      padding: 10px;
+      flex: 0 0 calc(50% - 10px); /* 2 columns on wider screens */
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      transition: var(--transition);
+      min-width: 200px;
+    }
+    .item-card:hover {
+      transform: scale(1.01);
+    }
+    .item-info {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      gap: 3px;
+    }
+    .item-name {
+      font-size: 0.9rem;
+      font-weight: bold;
+      color: var(--navy);
+    }
+    .item-price {
+      font-size: 0.9rem;
+      color: var(--text-color);
+    }
 
-.category h2 {
-margin-bottom: 15px;
-color: #f4c10f;
-font-size: 1.5em;
-text-shadow: 1px 1px 3px #000;
-cursor: pointer;
-}
+    /* Quantity controls */
+    .qty-controls {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+    .qty-btn {
+      background: var(--gold);
+      color: var(--navy);
+      border: none;
+      border-radius: 3px;
+      width: 24px;
+      height: 24px;
+      cursor: pointer;
+      transition: var(--transition);
+    }
+    .qty-btn:hover {
+      background: var(--gold-hover);
+    }
+    .qty-input {
+      width: 35px;
+      text-align: center;
+      border: 2px solid var(--navy);
+      border-radius: 3px;
+      font-size: 0.9rem;
+      padding: 2px;
+    }
 
-table {
-width: 100%;
-border-collapse: collapse;
-margin-bottom: 20px;
-}
+    /************************************************************
+     * FLOATING CART BUTTON                                    *
+     ************************************************************/
+    .cart-button {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      background-color: var(--gold);
+      color: var(--navy);
+      border: none;
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+      font-size: 1.3rem;
+      cursor: pointer;
+      box-shadow: var(--box-shadow);
+      transition: var(--transition);
+      z-index: 999;
+    }
+    .cart-button:hover {
+      background-color: var(--gold-hover);
+      transform: scale(1.1);
+    }
 
-table th, table td {
-border: 1px solid #444;
-padding: 8px;
-text-align: center;
-}
+    /************************************************************
+     * SLIDE-OUT CART                                          *
+     ************************************************************/
+    .cart-container {
+      position: fixed;
+      top: 0;
+      right: -400px; /* hidden off-screen initially */
+      width: 320px;
+      height: 100vh;
+      background-color: #fff;
+      box-shadow: -2px 0 5px rgba(0, 0, 0, 0.2);
+      padding: 15px;
+      transition: var(--transition);
+      display: flex;
+      flex-direction: column;
+      z-index: 1000;
+    }
+    .cart-container.active {
+      right: 0; /* slide in */
+    }
+    .cart-header {
+      font-size: 1.1rem;
+      color: var(--navy);
+      border-bottom: 2px solid var(--gold);
+      margin-bottom: 10px;
+      padding-bottom: 5px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .close-cart {
+      font-size: 1rem;
+      background: none;
+      border: none;
+      color: var(--gold);
+      cursor: pointer;
+      transition: var(--transition);
+    }
+    .close-cart:hover {
+      color: var(--gold-hover);
+      transform: scale(1.1);
+    }
 
-table th {
-background: #444;
-color: #f4c10f;
-font-size: 1.2em;
-}
+    /* Cart Items */
+    .cart-items {
+      flex: 1;
+      overflow-y: auto;
+      margin-bottom: 10px;
+    }
+    .cart-item {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 4px;
+      font-size: 0.9rem;
+      border-bottom: 1px dashed #ccc;
+      padding-bottom: 2px;
+    }
 
-table td {
-background: #555;
-color: #fff;
-}
+    .cart-total {
+      font-size: 1.1rem;
+      color: var(--navy);
+      font-weight: bold;
+      text-align: center;
+      margin-bottom: 8px;
+    }
 
-.copy-section {
-text-align: center;
-margin-top: 30px;
-}
+    /* Description box + Buttons */
+    .description-box {
+      width: 100%;
+      min-height: 50px;
+      border: 2px solid var(--navy);
+      border-radius: 5px;
+      padding: 5px;
+      resize: none;
+      margin-bottom: 8px;
+      font-size: 0.9rem;
+    }
+    .cart-buttons {
+      display: flex;
+      gap: 5px;
+      justify-content: center;
+    }
+    .cart-buttons button {
+      padding: 6px 12px;
+      font-size: 0.9rem;
+      background-color: var(--gold);
+      color: var(--navy);
+      border: none;
+      border-radius: 3px;
+      cursor: pointer;
+      transition: var(--transition);
+      box-shadow: var(--box-shadow);
+    }
+    .cart-buttons button:hover {
+      background-color: var(--gold-hover);
+      transform: scale(1.05);
+    }
 
-.copy-section button {
-background: #f4c10f;
-color: #000;
-border: none;
-padding: 10px 20px;
-font-size: 1em;
-border-radius: 5px;
-cursor: pointer;
-box-shadow: 2px 2px 5px #222;
-}
+    /************************************************************
+     * FOOTER                                                  *
+     ************************************************************/
+    .footer {
+      background: var(--navy);
+      color: var(--gold);
+      text-align: center;
+      padding: 10px;
+      font-size: 0.9rem;
+      position: relative;
+      overflow: hidden;
+    }
+    .footer::before, .footer::after {
+      content: "";
+      position: absolute;
+      width: 150px;
+      height: 150px;
+      background: rgba(255,255,255,0.3);
+      border-radius: 50%;
+      animation: bubble 8s infinite ease-in-out;
+    }
+    .footer::before {
+      top: -60px;
+      left: -60px;
+    }
+    .footer::after {
+      bottom: -60px;
+      right: -60px;
+      animation-direction: reverse;
+    }
+    @keyframes bubble {
+      0%, 100% { transform: scale(1); }
+      50%      { transform: scale(1.4); }
+    }
 
-.copy-section textarea {
-width: 80%;
-height: auto;
-min-height: 100px;
-max-height: 300px;
-overflow-y: auto;
-font-size: 1em;
-border: 2px solid #f4c10f;
-border-radius: 5px;
-padding: 10px;
-background: #222;
-color: #fff;
-resize: none;
-}
-
-.footer {
-text-align: center;
-margin-top: 50px;
-font-size: 1em;
-color: #f4c10f;
-}
-
-.hidden {
-display: none;
-}
-</style>
+    /************************************************************
+     * RESPONSIVE                                              *
+     ************************************************************/
+    @media (max-width: 768px) {
+      .item-card {
+        flex: 0 0 100%;
+      }
+      .cart-container {
+        width: 80%;
+      }
+    }
+  </style>
 </head>
 <body>
-<div class="header">
-<div class="total-display">Total (Including Tax): $<span id="total">0.00</span></div>
-<button onclick="clearAll()">Clear All</button>
-</div>
+  <!-- HEADER -->
+  <div class="header">
+    <h1>Hilton: The Main</h1>
+  </div>
 
-<h1>Hilton: The Main - Market Pantry Calculator</h1>
+  <!-- MAIN WRAPPER -->
+  <div class="main-content">
+    <!-- SEARCH BAR -->
+    <div class="search-container">
+      <input
+        type="text"
+        id="search"
+        placeholder="Search for an item..."
+        oninput="searchItems()"
+      />
+    </div>
 
-<div class="container">
-<div class="instructions">
-Type the name of the item in the search bar or select from the categories below. Enter the quantity for each item, and the total will update automatically. Use the "Copy Description" button to generate a formatted summary for the system.
-</div>
+    <!-- TABS -->
+    <div class="tabs" id="tabs">
+      <!-- Dynamically populated tab buttons here -->
+    </div>
 
-<div class="search-bar">
-<input type="text" id="search" placeholder="Search for an item..." oninput="searchItems()">
-</div>
+    <!-- CATEGORY CONTENT (Container for each tab's items) -->
+    <div id="tabContents">
+      <!-- Dynamically populated item cards go here -->
+    </div>
+  </div>
 
-<div id="items">
-<!-- Dynamically populated items will go here -->
-</div>
-</div>
+  <!-- FLOATING CART BUTTON -->
+  <button class="cart-button" onclick="toggleCart()">🛒</button>
 
-<div class="copy-section">
-<button onclick="copyDescription()">Copy Description</button>
-<textarea id="description" readonly></textarea>
-</div>
+  <!-- SLIDE-OUT CART -->
+  <div class="cart-container" id="cartContainer">
+    <div class="cart-header">
+      <span>Your Cart</span>
+      <button class="close-cart" onclick="toggleCart()">✕</button>
+    </div>
+    <div class="cart-items" id="cartItems"></div>
+    <div class="cart-total">Total (Incl. Tax): $<span id="total">0.00</span></div>
+    <textarea class="description-box" id="description" readonly></textarea>
+    <div class="cart-buttons">
+      <button onclick="clearAll()">Clear All</button>
+      <button onclick="copyDescription()">Copy</button>
+    </div>
+  </div>
 
-<div class="footer">
-Created by Ander Tillery
-</div>
+  <!-- FOOTER -->
+  <div class="footer">
+    Created by Ander Tillery
+  </div>
 
-<script>
-const items = {
-"Medicine": [
-{ name: "Advil Pain", price: 5.00 },
-{ name: "Advil Pain Liquigel", price: 5.00 },
-{ name: "Advil PM", price: 5.00 },
-{ name: "Aleve", price: 5.00 },
-{ name: "Alka Seltzer", price: 5.00 },
-{ name: "Benadryl", price: 5.00 },
-{ name: "Claritin", price: 5.00 },
-{ name: "Clear Eyes Solution", price: 5.00 },
-{ name: "Dayquil Severe Cold & Flu", price: 5.00 },
-{ name: "Emergen-C Super Orange", price: 5.00 },
-{ name: "Excedrin Caplets", price: 4.00 },
-{ name: "Motrin", price: 4.00 },
-{ name: "Mucinex DM", price: 5.00 },
-{ name: "Nyquil Severe Cold & Flu", price: 5.00 },
-{ name: "Scope Mouthwash", price: 3.00 },
-{ name: "Tylenol Extra Strength", price: 5.00 },
-{ name: "Visine Eye Drops", price: 5.00 }
-],
-"Drinks": [
-{ name: "Coke Soda", price: 4.00 },
-{ name: "Cranberry Juice", price: 4.00 },
-{ name: "Diet Coke Soda", price: 4.00 },
-{ name: "Diet Dr. Pepper Soda", price: 4.00 },
-{ name: "Dr. Pepper Soda", price: 4.00 },
-{ name: "Energy Berry 5 Hour", price: 5.00 },
-{ name: "Gatorade Orange", price: 5.00 },
-{ name: "Gatorade Yellow", price: 5.00 },
-{ name: "Juice Apple", price: 4.00 },
-{ name: "Juice Orange", price: 4.00 },
-{ name: "Red Bull", price: 5.00 },
-{ name: "Red Bull Sugar-Free", price: 5.00 },
-{ name: "Smart Water 20oz", price: 4.00 },
-{ name: "Smart Water 32oz", price: 7.00 },
-{ name: "Sparkling Water", price: 4.00 },
-{ name: "Sprite Soda", price: 4.00 },
-{ name: "Vitamin Water", price: 4.00 },
-{ name: "Water Evian 1L", price: 7.00 },
-{ name: "Water Evian 20oz", price: 5.00 }
-],
-"Candy": [
-{ name: "Almond Joy", price: 4.00 },
-{ name: "Butterfinger", price: 5.00 },
-{ name: "Gum Arctic Chill", price: 4.00 },
-{ name: "Gum Peppermint", price: 4.00 },
-{ name: "Haribo Gold Bears", price: 5.00 },
-{ name: "Hershey Almond", price: 4.00 },
-{ name: "Hershey Milk Choc", price: 4.00 },
-{ name: "Kit Kat Bar", price: 5.00 },
-{ name: "M&Ms Milk Choc", price: 5.00 },
-{ name: "M&Ms Peanut", price: 5.00 },
-{ name: "Mints Peppermint", price: 5.00 },
-{ name: "Mints Spearmint", price: 5.00 },
-{ name: "Reese’s PB Cup Mini Bag", price: 5.00 },
-{ name: "Reese’s Peanut Butter Cup", price: 5.00 },
-{ name: "Skittles", price: 4.00 },
-{ name: "Snickers Mini Bag", price: 4.00 },
-{ name: "Swedish Fish", price: 5.00 },
-{ name: "Twix Caramel", price: 5.00 },
-{ name: "Twizzlers Strawberry", price: 5.00 }
-],
-"Snacks": [
-{ name: "Bagel Chips", price: 5.00 },
-{ name: "Bar Caramel Sea Salt", price: 4.00 },
-{ name: "Bar Chocolate Chip Clif", price: 4.00 },
-{ name: "Bar Granola Oat and Honey", price: 4.00 },
-{ name: "Bar Granola Peanut Butter", price: 4.00 },
-{ name: "Bar Oreo Cookies & Cream", price: 4.00 },
-{ name: "Bar Protein Brownie Batter", price: 4.00 },
-{ name: "Bar Protein Chocolate PB", price: 4.00 },
-{ name: "Bark Thins", price: 8.00 },
-{ name: "Brittle Caramel Brownie", price: 7.00 },
-{ name: "Brittle Chocolate Chip Brownie", price: 7.00 },
-{ name: "Chex Mix Muddy Buddies", price: 5.00 },
-{ name: "Chex Mix Traditional", price: 5.00 },
-{ name: "Chips Fritos", price: 4.00 },
-{ name: "Chips Lays BBQ", price: 4.00 },
-{ name: "Chocolate Chip Cookie", price: 3.00 },
-{ name: "Combos Cheddar Cheese", price: 5.00 },
-{ name: "Cookie Oreos", price: 4.00 },
-{ name: "Cheetos Crunchy", price: 4.00 },
-{ name: "Cheetos Flamin’ Hot", price: 4.00 },
-{ name: "Cracker Ritz Peanut Butter", price: 3.00 },
-{ name: "Doritos Cool Ranch", price: 4.00 },
-{ name: "Doritos Nacho Cheese", price: 4.00 },
-{ name: "Fruit Bowl", price: 4.00 },
-{ name: "Jerky Beef", price: 10.00 },
-{ name: "Peanuts Salty", price: 4.00 },
-{ name: "Popcorn Kettlecorn", price: 5.00 },
-{ name: "Popcorn White Cheddar", price: 5.00 },
-{ name: "Pretzel Thins", price: 5.00 },
-{ name: "Pringles Salt & Vinegar", price: 5.00 },
-{ name: "Ruffles Sour Cream Cheddar", price: 4.00 },
-{ name: "Sunchips Harvest Cheddar", price: 5.00 },
-{ name: "Trail Mix Nut & Choc", price: 5.00 }
-],
-"Miscellaneous": [
-{ name: "Always Ultra Regular Thin", price: 7.00 },
-{ name: "Hairspray Berry", price: 7.00 },
-{ name: "Hairspray Tresseme Pump", price: 6.00 },
-{ name: "Lightning Cable for Apple", price: 20.00 }
-]
-};
+  <!-- JAVASCRIPT -->
+  <script>
+    /************************************************************
+     * ITEM DATA, TAX RATE, AND GLOBAL STATE                   *
+     ************************************************************/
+    const items = {
+      "Medicine": [
+        { name: "Advil Pain", price: 5.00 },
+        { name: "Advil Pain Liquigel", price: 5.00 },
+        { name: "Advil PM", price: 5.00 },
+        { name: "Aleve", price: 5.00 },
+        { name: "Alka Seltzer", price: 5.00 },
+        { name: "Benadryl", price: 5.00 },
+        { name: "Claritin", price: 5.00 },
+        { name: "Clear Eyes Solution", price: 5.00 },
+        { name: "Dayquil Severe Cold & Flu", price: 5.00 },
+        { name: "Emergen-C Super Orange", price: 5.00 },
+        { name: "Excedrin Caplets", price: 4.00 },
+        { name: "Motrin", price: 4.00 },
+        { name: "Mucinex DM", price: 5.00 },
+        { name: "Nyquil Severe Cold & Flu", price: 5.00 },
+        { name: "Scope Mouthwash", price: 3.00 },
+        { name: "Tylenol Extra Strength", price: 5.00 },
+        { name: "Visine Eye Drops", price: 5.00 }
+      ],
+      "Drinks": [
+        { name: "Coke Soda", price: 4.00 },
+        { name: "Cranberry Juice", price: 4.00 },
+        { name: "Diet Coke Soda", price: 4.00 },
+        { name: "Diet Dr. Pepper Soda", price: 4.00 },
+        { name: "Dr. Pepper Soda", price: 4.00 },
+        { name: "Energy Berry 5 Hour", price: 5.00 },
+        { name: "Gatorade Orange", price: 5.00 },
+        { name: "Gatorade Yellow", price: 5.00 },
+        { name: "Juice Apple", price: 4.00 },
+        { name: "Juice Orange", price: 4.00 },
+        { name: "Red Bull", price: 5.00 },
+        { name: "Red Bull Sugar-Free", price: 5.00 },
+        { name: "Smart Water 20oz", price: 4.00 },
+        { name: "Smart Water 32oz", price: 7.00 },
+        { name: "Sparkling Water", price: 4.00 },
+        { name: "Sprite Soda", price: 4.00 },
+        { name: "Vitamin Water", price: 4.00 },
+        { name: "Water Evian 1L", price: 7.00 },
+        { name: "Water Evian 20oz", price: 5.00 }
+      ],
+      "Candy": [
+        { name: "Almond Joy", price: 4.00 },
+        { name: "Butterfinger", price: 5.00 },
+        { name: "Gum Arctic Chill", price: 4.00 },
+        { name: "Gum Peppermint", price: 4.00 },
+        { name: "Haribo Gold Bears", price: 5.00 },
+        { name: "Hershey Almond", price: 4.00 },
+        { name: "Hershey Milk Choc", price: 4.00 },
+        { name: "Kit Kat Bar", price: 5.00 },
+        { name: "M&Ms Milk Choc", price: 5.00 },
+        { name: "M&Ms Peanut", price: 5.00 },
+        { name: "Mints Peppermint", price: 5.00 },
+        { name: "Mints Spearmint", price: 5.00 },
+        { name: "Reese’s PB Cup Mini Bag", price: 5.00 },
+        { name: "Reese’s Peanut Butter Cup", price: 5.00 },
+        { name: "Skittles", price: 4.00 },
+        { name: "Snickers Mini Bag", price: 4.00 },
+        { name: "Swedish Fish", price: 5.00 },
+        { name: "Twix Caramel", price: 5.00 },
+        { name: "Twizzlers Strawberry", price: 5.00 }
+      ],
+      "Snacks": [
+        { name: "Bagel Chips", price: 5.00 },
+        { name: "Bar Caramel Sea Salt", price: 4.00 },
+        { name: "Bar Chocolate Chip Clif", price: 4.00 },
+        { name: "Bar Granola Oat and Honey", price: 4.00 },
+        { name: "Bar Granola Peanut Butter", price: 4.00 },
+        { name: "Bar Oreo Cookies & Cream", price: 4.00 },
+        { name: "Bar Protein Brownie Batter", price: 4.00 },
+        { name: "Bar Protein Chocolate PB", price: 4.00 },
+        { name: "Bark Thins", price: 8.00 },
+        { name: "Brittle Caramel Brownie", price: 7.00 },
+        { name: "Brittle Chocolate Chip Brownie", price: 7.00 },
+        { name: "Chex Mix Muddy Buddies", price: 5.00 },
+        { name: "Chex Mix Traditional", price: 5.00 },
+        { name: "Chips Fritos", price: 4.00 },
+        { name: "Chips Lays BBQ", price: 4.00 },
+        { name: "Chocolate Chip Cookie", price: 3.00 },
+        { name: "Combos Cheddar Cheese", price: 5.00 },
+        { name: "Cookie Oreos", price: 4.00 },
+        { name: "Cheetos Crunchy", price: 4.00 },
+        { name: "Cheetos Flamin’ Hot", price: 4.00 },
+        { name: "Cracker Ritz Peanut Butter", price: 3.00 },
+        { name: "Doritos Cool Ranch", price: 4.00 },
+        { name: "Doritos Nacho Cheese", price: 4.00 },
+        { name: "Fruit Bowl", price: 4.00 },
+        { name: "Jerky Beef", price: 10.00 },
+        { name: "Peanuts Salty", price: 4.00 },
+        { name: "Popcorn Kettlecorn", price: 5.00 },
+        { name: "Popcorn White Cheddar", price: 5.00 },
+        { name: "Pretzel Thins", price: 5.00 },
+        { name: "Pringles Salt & Vinegar", price: 5.00 },
+        { name: "Ruffles Sour Cream Cheddar", price: 4.00 },
+        { name: "Sunchips Harvest Cheddar", price: 5.00 },
+        { name: "Trail Mix Nut & Choc", price: 5.00 }
+      ],
+      "Miscellaneous": [
+        { name: "Always Ultra Regular Thin", price: 7.00 },
+        { name: "Hairspray Berry", price: 7.00 },
+        { name: "Hairspray Tresseme Pump", price: 6.00 },
+        { name: "Lightning Cable for Apple", price: 20.00 }
+      ]
+    };
 
-const TAX_RATE = 0.075; // 7.5% tax
+    const TAX_RATE = 0.075;
 
-function populateItems() {
-const container = document.getElementById("items");
-Object.keys(items).forEach(category => {
-const categoryDiv = document.createElement("div");
-categoryDiv.classList.add("category");
+    /************************************************************
+     * POPULATE TABS + TAB CONTENT                              *
+     ************************************************************/
+    function populateTabs() {
+      const tabsContainer = document.getElementById("tabs");
+      const tabContentsContainer = document.getElementById("tabContents");
 
-// Collapsible category header
-const header = document.createElement("h2");
-header.textContent = category;
-header.onclick = () => {
-const table = header.nextElementSibling;
-table.classList.toggle("hidden");
-};
-categoryDiv.appendChild(header);
+      // For each category, create a tab button and a tab content section
+      const categories = Object.keys(items);
+      categories.forEach((cat, idx) => {
+        // Tab Button
+        const tabBtn = document.createElement("button");
+        tabBtn.classList.add("tab-btn");
+        tabBtn.textContent = cat;
+        tabBtn.onclick = () => switchTab(cat);
+        if (idx === 0) tabBtn.classList.add("active"); // default active on first
 
-// Category table
-const table = document.createElement("table");
-const headerRow = document.createElement("tr");
-headerRow.innerHTML = "<th>Item</th><th>Price</th><th>Quantity</th>"
-table.appendChild(headerRow);
+        tabsContainer.appendChild(tabBtn);
 
-items[category].forEach(item => {
-const row = document.createElement("tr");
-row.innerHTML = `
-<td>${item.name}</td>
-<td>$${item.price.toFixed(2)}</td>
-<td><input type="number" min="0" value="0" data-name="${item.name}" data-price="${item.price}" onchange="updateTotal()"></td>
-`;
-table.appendChild(row);
-});
+        // Tab Content
+        const tabContentDiv = document.createElement("div");
+        tabContentDiv.classList.add("tab-content");
+        if (idx === 0) tabContentDiv.classList.add("active"); // first category shown by default
+        tabContentDiv.id = `tab-${cat}`;
 
-categoryDiv.appendChild(table);
-container.appendChild(categoryDiv);
-});
-}
+        // Populate item cards for this category
+        items[cat].forEach(item => {
+          const card = document.createElement("div");
+          card.classList.add("item-card");
 
-function updateTotal() {
-const inputs = document.querySelectorAll("input[type='number']");
-let total = 0;
-const description = [];
+          const itemInfo = document.createElement("div");
+          itemInfo.classList.add("item-info");
 
-inputs.forEach(input => {
-const quantity = parseInt(input.value, 10);
-if (quantity > 0) {
-const price = parseFloat(input.dataset.price);
-const itemName = input.dataset.name;
-total += price * quantity;
-description.push(`${quantity} ${itemName}`);
-}
-});
+          const itemName = document.createElement("div");
+          itemName.className = "item-name";
+          itemName.textContent = item.name;
 
-const totalWithTax = total + total * TAX_RATE;
-document.getElementById("total").textContent = totalWithTax.toFixed(2);
-document.getElementById("description").value = description.join(", ");
-}
+          const itemPrice = document.createElement("div");
+          itemPrice.className = "item-price";
+          itemPrice.textContent = `$${item.price.toFixed(2)}`;
 
-function clearAll() {
-const inputs = document.querySelectorAll("input[type='number']");
-inputs.forEach(input => input.value = 0);
-updateTotal();
-}
+          itemInfo.appendChild(itemName);
+          itemInfo.appendChild(itemPrice);
 
-function copyDescription() {
-const description = document.getElementById("description");
-description.select();
-document.execCommand("copy");
-}
+          // Quantity Controls
+          const qtyControls = document.createElement("div");
+          qtyControls.classList.add("qty-controls");
 
-function searchItems() {
-const query = document.getElementById("search").value.toLowerCase();
-const categories = document.querySelectorAll(".category");
+          const minusBtn = document.createElement("button");
+          minusBtn.classList.add("qty-btn");
+          minusBtn.textContent = "−";
+          minusBtn.onclick = () => {
+            const newVal = parseInt(qtyInput.value, 10) - 1;
+            qtyInput.value = newVal > 0 ? newVal : 0;
+            updateCart();
+          };
 
-categories.forEach(category => {
-let hasMatch = false;
-const rows = category.querySelectorAll("table tr");
-rows.forEach((row, index) => {
-if (index === 0) return; // Skip header row
-const itemName = row.children[0].textContent.toLowerCase();
-if (itemName.includes(query)) {
-row.style.display = ""
-hasMatch = true;
-} else {
-row.style.display = "none"
-}
-});
+          const qtyInput = document.createElement("input");
+          qtyInput.type = "number";
+          qtyInput.min = "0";
+          qtyInput.value = "0";
+          qtyInput.classList.add("qty-input");
+          qtyInput.dataset.name = item.name;
+          qtyInput.dataset.price = item.price.toString();
+          qtyInput.onchange = updateCart;
 
-// Hide or show the category based on matches
-category.style.display = hasMatch ? "" : "none"
-});
-}
+          const plusBtn = document.createElement("button");
+          plusBtn.classList.add("qty-btn");
+          plusBtn.textContent = "+";
+          plusBtn.onclick = () => {
+            qtyInput.value = parseInt(qtyInput.value, 10) + 1;
+            updateCart();
+          };
 
-// Initialize the page
-populateItems();
-</script>
+          qtyControls.appendChild(minusBtn);
+          qtyControls.appendChild(qtyInput);
+          qtyControls.appendChild(plusBtn);
+
+          card.appendChild(itemInfo);
+          card.appendChild(qtyControls);
+
+          tabContentDiv.appendChild(card);
+        });
+
+        tabContentsContainer.appendChild(tabContentDiv);
+      });
+    }
+
+    /************************************************************
+     * SWITCH TAB                                              *
+     ************************************************************/
+    function switchTab(category) {
+      // Only switch if no search query is active
+      const searchVal = document.getElementById("search").value.trim();
+      if (searchVal) return; // If there's a search, ignore tab switching
+
+      // Remove active from all tab buttons
+      document.querySelectorAll(".tab-btn").forEach(btn => {
+        btn.classList.remove("active");
+      });
+      // Add active to the clicked button
+      const clickedBtn = [...document.querySelectorAll(".tab-btn")]
+                          .find(b => b.textContent === category);
+      if (clickedBtn) clickedBtn.classList.add("active");
+
+      // Hide all tab contents
+      document.querySelectorAll(".tab-content").forEach(content => {
+        content.classList.remove("active");
+      });
+      // Show the chosen tab content
+      document.getElementById(`tab-${category}`).classList.add("active");
+    }
+
+    /************************************************************
+     * FLOATING CART CONTROL (OPEN/CLOSE)                      *
+     ************************************************************/
+    function toggleCart() {
+      document.getElementById("cartContainer").classList.toggle("active");
+    }
+
+    /************************************************************
+     * UPDATE CART (READ ALL QTY INPUTS)                       *
+     ************************************************************/
+    function updateCart() {
+      const allQtyInputs = document.querySelectorAll(".qty-input");
+      let subtotal = 0;
+      const descriptionArr = [];
+      const cartItemsDiv = document.getElementById("cartItems");
+      cartItemsDiv.innerHTML = "";
+
+      allQtyInputs.forEach(input => {
+        const qty = parseInt(input.value, 10);
+        if (qty > 0) {
+          const price = parseFloat(input.dataset.price);
+          const name = input.dataset.name;
+          const lineTotal = qty * price;
+          subtotal += lineTotal;
+
+          // Build cart item UI
+          const cartItem = document.createElement("div");
+          cartItem.classList.add("cart-item");
+          cartItem.innerHTML = `
+            <span>${qty} x ${name}</span>
+            <span>$${lineTotal.toFixed(2)}</span>
+          `;
+          cartItemsDiv.appendChild(cartItem);
+
+          descriptionArr.push(`${qty} ${name}`);
+        }
+      });
+
+      // Calculate total with tax
+      const totalWithTax = subtotal + subtotal * TAX_RATE;
+      document.getElementById("total").textContent = totalWithTax.toFixed(2);
+
+      // Update description box
+      document.getElementById("description").value = descriptionArr.join(", ");
+    }
+
+    /************************************************************
+     * CLEAR ALL                                               *
+     ************************************************************/
+    function clearAll() {
+      document.querySelectorAll(".qty-input").forEach(inp => (inp.value = 0));
+      updateCart();
+    }
+
+    /************************************************************
+     * COPY DESCRIPTION                                        *
+     ************************************************************/
+    function copyDescription() {
+      const description = document.getElementById("description");
+      description.select();
+      document.execCommand("copy");
+    }
+
+    /************************************************************
+     * UNIVERSAL SEARCH                                        *
+     * - Finds matching items in ALL categories/tabs.          *
+     * - Hides tabs with no matching items.                    *
+     * - Displays all tabs if search is non-empty.             *
+     ************************************************************/
+    function searchItems() {
+      const query = document.getElementById("search").value.toLowerCase().trim();
+      const tabButtons = document.querySelectorAll(".tab-btn");
+      const tabContents = document.querySelectorAll(".tab-content");
+
+      // If there's a search, we want to show ALL tabs, but hide items that don't match.
+      // If no search, revert to "tab logic."
+      if (!query) {
+        // Revert to normal tab-based display
+        // Show only the active tab's content
+        tabButtons.forEach(btn => {
+          // If a button is active, show that tab content
+          const isActive = btn.classList.contains("active");
+          const cat = btn.textContent;
+          const content = document.getElementById(`tab-${cat}`);
+          content.classList.remove("active");
+          if (isActive) content.classList.add("active");
+          btn.style.display = ""; // show all tab buttons
+        });
+        // Also show all item cards
+        document.querySelectorAll(".item-card").forEach(card => {
+          card.style.display = "flex";
+        });
+        return;
+      }
+
+      // There is a search query => show all tabs, hide non-matching items
+      tabButtons.forEach(btn => {
+        // Make all tabs visible (unhide)
+        btn.style.display = "inline-block";
+        // Mark all tabs as active so they can be displayed
+        btn.classList.remove("active");
+      });
+
+      tabContents.forEach(content => {
+        content.classList.add("active"); // show all content by default
+      });
+
+      // Now hide item cards that don't match
+      let tabHasMatch = {};
+      document.querySelectorAll(".tab-content").forEach(tabContent => {
+        const itemCards = tabContent.querySelectorAll(".item-card");
+        let hasMatch = false;
+        itemCards.forEach(card => {
+          const itemName = card.querySelector(".item-name").textContent.toLowerCase();
+          if (itemName.includes(query)) {
+            card.style.display = "flex";
+            hasMatch = true;
+          } else {
+            card.style.display = "none";
+          }
+        });
+        // Track if this tab had a match
+        const tabId = tabContent.id; // ex: "tab-Medicine"
+        tabHasMatch[tabId] = hasMatch;
+      });
+
+      // Hide tab buttons if their tab has no matches
+      tabButtons.forEach(btn => {
+        const cat = btn.textContent;
+        const tabId = `tab-${cat}`;
+        if (!tabHasMatch[tabId]) {
+          // No match => Hide the entire tab button and the tab content
+          btn.style.display = "none";
+        }
+      });
+    }
+
+    /************************************************************
+     * ON WINDOW LOAD                                          *
+     ************************************************************/
+    window.onload = () => {
+      populateTabs();
+    };
+  </script>
 </body>
 </html>
